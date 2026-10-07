@@ -1,0 +1,20 @@
+{
+  "name": "omniledger",
+  "version": "1.0.0",
+  "description": "OmniLedger: an event-driven multi-currency ledger and payment orchestrator in TypeScript, node js",
+  "homepage": "https://github.com/devxmoses/omniledger#readme",
+  "bugs": {
+    "url": "https://github.com/devxmoses/omniledger/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devxmoses/omniledger.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
