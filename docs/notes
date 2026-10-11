@@ -1,0 +1,40 @@
+docker compose --profile core up -d
+docker compose --profile core ps        # postgres should show "healthy" after a few seconds
+docker compose --profile core exec postgres psql -U payments_ledger -d payments_ledger -c "select current_user, current_database();"
+sudo usermod -aG docker $USER           # then log out of Linux (or `newgrp docker`) — `docker logout` does NOT apply it
+
+docker logout                           # only logs out of Docker Hub
+docker compose --profile core down -v   # wipe DB volume (needs --profile, or postgres is ignored)
+docker compose --profile core up -d
+
+
+
+DECISION (Oct 11, 2026): Nx monorepo + NestJS services, set up from scratch
+- New workspace with create-nx-workspace; every service generated with `nx g @nx/nest:app <name>` (never `nest new` inside the repo)
+- Accept the Nx NestJS generator defaults (module system, test runner, build tool); pin the TypeScript version Nx supports
+- Run Nest services with `nx serve`, not tsx (esbuild drops decorator metadata -> broken DI)
+- Carry over unchanged: docker-compose.yml, infra/, docs/, plan_docs/, the SQL inside migrations 0001 + 0002
+- Migrations: plain .sql files run by node-pg-migrate (replaces my migrate.ts + migrate-cli.ts — same ideas: tracking table, advisory lock, transaction per file)
+- Queries: plain SQL with `pg` in the ledger (no ORM) — FOR UPDATE, explicit BEGIN/COMMIT, deferred trigger errors stay visible. Other services choose when built.
+- M1 still has no HTTP routes: ledger is written as NestJS providers and proven by tests
+- HTTP adapter (Express default vs Fastify adapter) decided at M2
+- Write ADR-006 for this decision
+
+
+
+Milestone	Steps	What they cover
+M1 Ledger engine	~8	0 Nx + NestJS workspace, carry over migrations (NEXT) · 1 docker/postgres setup ✅ · 2 migrations + currency/account ✅ · 3 transaction + journal_entry + balancing trigger ✅ · 4 test harness (Testcontainers) · 5 posting code as a NestJS provider · 6 balance derivation + snapshots · 7 concurrency + reversal tests
+M2 Payments + provider adapter	~6	NestJS controllers + HTTP adapter choice · payment intents · idempotency with Redis · PaymentProvider interface + Paystack · inbound webhooks + dedupe · pending vs posted
+M3 Outbox + Kafka	~4	outbox table · polling worker · Kafka + event envelope · idempotent consumer
+M4 Notification	~4	HMAC webhooks · retry ladder · DLT · per-merchant circuit breaker + replay
+M5 Dashboard	~5	Next.js setup (Nx Next.js plugin) · auth · balances/transactions · ledger explorer + webhook inspector · live feed
+M6 Identity, KYC, gateway	~5	API keys · KYC state machine · gateway auth · rate limiting · blocking unverified merchants
+M7 Payouts	~3	requests · maker-checker · saga with reversal
+M8 Reconciliation + audit	~3	T+1 matching · exceptions queue · hash chain + verifier
+M9 FX, Stripe, Insights, polish	~7	FX · Stripe adapter · AI features · OpenTelemetry · CI · docs/ADRs/seed · deploy
+Where you'll have something to show:
+
+After M1 (~8 steps): a tested ledger. You can already put it on GitHub.
+After M2 (~14 steps): your first demo, with a real sandbox payment moving end to end.
+After M5 (~27 steps): a working dashboard, so you can record a demo video.
+M1–M2 are the slowest, because each step teaches a new concept. Later steps go faster since they reuse patterns you'll already know.

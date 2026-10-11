@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["core","events","cdc","full"]
+    environment:
+      POSTGRES_USER: omniledger
+      POSTGRES_PASSWORD: omniledger
+      POSTGRES_DB: omniledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omniledger"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+
