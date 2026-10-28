@@ -2,6 +2,21 @@
 #paths
 plan_docs/
 
+# AI tooling (local only)
+.claude/
+.agents/
+.codex/
+.cursor/
+.gemini/
+.opencode/
+opencode.json
+CLAUDE.md
+AGENTS.md
+.github/agents/
+.github/prompts/
+.github/skills/
+.github/instructions/
+
 # compiled output
 dist
 tmp
@@ -42,11 +57,8 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
-.cursor/rules/nx-rules.mdc
-.github/instructions/nx.instructions.md
 
-.claude/worktrees
-.claude/settings.local.json
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
+test-output
