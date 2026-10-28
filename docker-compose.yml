@@ -1,0 +1,24 @@
+name: omniledger
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["core","full"]
+    command: ["postgres", "-c", "wal_level=logical"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-omniledger}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:-omniledger}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 512m
+
+volumes:
+  pgdata:
